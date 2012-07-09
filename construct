@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import subprocess
+
+def test(build_dir):
+    subprocess.check_call([
+        "cmake",
+        ".."
+    ], cwd=build_dir)
+    
+    subprocess.check_call([
+        "ctest",
+        "-v"
+    ], cwd=build_dir)
+    
+def build(build_dir):
+    subprocess.check_call([
+        "cmake",
+        ".."
+    ], cwd=build_dir)
+    
+    subprocess.check_call([
+        "make",
+        "-j4"
+    ], cwd=build_dir)
+
+def run(build_dir):
+    executable = os.path.split(os.path.dirname(os.path.abspath(__file__)))[-1].lower()
+    executable = os.path.join(build_dir, executable)
+
+    if not os.path.exists(executable):
+        raise IOError("No such executable: %s" % executable)
+    
+    subprocess.check_call([
+        executable
+    ], cwd=os.path.dirname(os.path.abspath(__file__)))
+
+def package():
+    pass
+
+def design(path):
+    for f in os.listdir(os.path.join(path, "data", "ui")):
+        if f.endswith(".ui"):
+            subprocess.check_call(["glade", os.path.join(path, "data", "ui", f)])
+
+def main():
+    path = os.path.dirname(os.path.abspath(__file__))
+
+    build_dir = os.path.join(path, ".build")
+    if not os.path.exists(build_dir):
+        os.mkdir(build_dir)
+
+    if "build" in sys.argv:
+        build(build_dir)
+    elif "test" in sys.argv:
+        build(build_dir)
+        test(build_dir)
+    elif "run" in sys.argv:
+        run(build_dir)
+    elif "design" in sys.argv:
+        design(path)
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())

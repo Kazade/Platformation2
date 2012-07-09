@@ -1,0 +1,3 @@
+[submodule "platformation/kazbase"]
+	path = platformation/kazbase
+	url = https://github.com/Kazade/kazbase.git

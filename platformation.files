@@ -1,0 +1,14 @@
+/home/kazade/Git/platformation2/platformation/CMakeLists.txt
+/home/kazade/Git/platformation2/platformation/main.cpp
+/home/kazade/Git/platformation2/tests/CMakeLists.txt
+/home/kazade/Git/platformation2/CMakeLists.txt
+platformation/main_window.h
+platformation/main_window.cpp
+platformation/canvas.h
+platformation/canvas.cpp
+platformation/gtkgl/gtk_gl_widget.h
+platformation/gtkgl/gtk_gl_widget.cpp
+platformation/level.h
+platformation/level.cpp
+platformation/layer.h
+platformation/layer.cpp
