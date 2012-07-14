@@ -1,7 +1,7 @@
-/home/kazade/Git/platformation2/platformation/CMakeLists.txt
-/home/kazade/Git/platformation2/platformation/main.cpp
-/home/kazade/Git/platformation2/tests/CMakeLists.txt
-/home/kazade/Git/platformation2/CMakeLists.txt
+platformation/CMakeLists.txt
+platformation/main.cpp
+tests/CMakeLists.txt
+CMakeLists.txt
 platformation/main_window.h
 platformation/main_window.cpp
 platformation/canvas.h
@@ -12,3 +12,5 @@ platformation/level.h
 platformation/level.cpp
 platformation/layer.h
 platformation/layer.cpp
+platformation/tile_chooser.h
+platformation/tile_chooser.cpp

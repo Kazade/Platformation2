@@ -48,6 +48,7 @@ private:
     uint32_t vertical_tile_count_;
 
     sigc::signal<void> signal_layers_changed_;
+
 };
 
 }

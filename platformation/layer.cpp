@@ -10,8 +10,6 @@ Layer::Layer(Level& parent):
     mesh_container_(0) {
 
     resize(parent.horizontal_tile_count(), parent.vertical_tile_count());
-
-
 }
 
 void Layer::resize(uint32_t new_width, uint32_t new_height) {
@@ -29,16 +27,20 @@ void Layer::add_to_scene(kglt::Scene& scene) {
             instance.mesh_id = new_mesh;
             instance.border_mesh_id = scene.new_mesh();
 
+            //Generate a mesh for the tile
             kglt::Mesh& mesh = scene.mesh(new_mesh);
-            kglt::procedural::mesh::rectangle(mesh, 1.0, 1.0);
+            kglt::procedural::mesh::rectangle(mesh, 1.0, 1.0, 0.5, 0.5);
 
+            //Generate a mesh for the border
             kglt::Mesh& border_mesh = scene.mesh(instance.border_mesh_id);
-            kglt::procedural::mesh::rectangle_outline(border_mesh, 1.0, 1.0);
+            kglt::procedural::mesh::rectangle_outline(border_mesh, 1.0, 1.0, 0.5, 0.5);
 
             border_mesh.set_parent(&mesh);
 
             mesh.move_to(float(x), float(z) - (float(parent_.vertical_tile_count()) / 2.0), -1.0 - (0.1 * (float) zindex()));
-            border_mesh.move_to(0, 0, 0.01);
+            border_mesh.move_to(0, 0, 0.01); //Move the border mesh slightly forward
+
+            mesh.set_parent(&scene.mesh(mesh_container_));
         }
     }
 }

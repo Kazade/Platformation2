@@ -25,12 +25,16 @@ public:
     virtual void cursor_position(int32_t& mouse_x, int32_t& mouse_y) {
         get_pointer(mouse_x, mouse_y);
     }
+
+    double ortho_width() const { return ortho_width_; }
 private:
     void do_init();
     void do_resize(int width, int height);
     void do_render();
 
     kglt::SelectionRenderer::ptr selection_;
+
+    double ortho_width_;
 };
 
 }

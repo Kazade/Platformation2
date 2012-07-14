@@ -5,6 +5,7 @@
 
 #include "canvas.h"
 #include "level.h"
+#include "tile_chooser.h"
 
 namespace pn {
 
@@ -14,6 +15,13 @@ struct LayerListColumns : public Gtk::TreeModel::ColumnRecord {
     Gtk::TreeModelColumn<Glib::ustring> column_name_;
     Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > checked_;
 };
+
+struct TileLocationListColumns : public Gtk::TreeModel::ColumnRecord {
+    TileLocationListColumns() { add(column_id); add(folder); }
+    Gtk::TreeModelColumn<int> column_id;
+    Gtk::TreeModelColumn<Glib::ustring> folder;
+};
+
 
 class MainWindow : public Gtk::Window {
 public:
@@ -44,14 +52,45 @@ public:
         }
     }
 
+    void add_tile_location_button_clicked_cb() {
+        Gtk::FileChooserDialog fd("Please choose a folder", Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+
+        fd.set_transient_for(*this);
+        fd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+        fd.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+
+        int result = fd.run();
+
+        if(result == Gtk::RESPONSE_OK) {
+            tile_chooser_->add_directory(fd.get_filename());
+        }
+    }
+
+    void tile_location_changed_cb() {
+        Gtk::TreeView* view = ui<Gtk::TreeView>("tile_location_list");
+
+        tile_location_list_model_->clear();
+
+        int32_t i = 0;
+        for(std::string directory: tile_chooser_->directories()) {
+            Gtk::TreeModel::Row row = *(tile_location_list_model_->append());
+            row[tile_location_list_columns_.column_id] = i++;
+            row[tile_location_list_columns_.folder] = directory;
+        }
+    }
+
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
     Canvas* canvas_;
+    TileChooser::ptr tile_chooser_;
 
     Level::ptr level_;
 
     LayerListColumns layer_list_columns_;
     Glib::RefPtr<Gtk::TreeStore> layer_list_model_;
+
+    TileLocationListColumns tile_location_list_columns_;
+    Glib::RefPtr<Gtk::TreeStore> tile_location_list_model_;
 
     template<typename T>
     T* ui(const std::string& name) {
@@ -69,6 +108,7 @@ private:
     std::map<std::string, Gtk::Widget*> widget_cache_;
 
     void _create_layer_list_model();
+    void _create_tile_location_list_model();
 };
 
 }

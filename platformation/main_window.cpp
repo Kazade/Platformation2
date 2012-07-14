@@ -1,3 +1,4 @@
+#include <glibmm/i18n.h>
 #include <cassert>
 #include "main_window.h"
 #include "level.h"
@@ -21,6 +22,16 @@ void MainWindow::_create_layer_list_model() {
 
     //Force a rebuild of the list
     level_layers_changed_cb();
+}
+
+void MainWindow::_create_tile_location_list_model() {
+    tile_location_list_model_ = Gtk::TreeStore::create(tile_location_list_columns_);
+    Gtk::TreeView* view = ui<Gtk::TreeView>("tile_location_list");
+    view->set_model(tile_location_list_model_);
+    view->append_column(_("Directory"), tile_location_list_columns_.folder);
+
+    Glib::RefPtr<Gtk::TreeSelection> selection = view->get_selection();
+    selection->set_mode(Gtk::SELECTION_SINGLE);
 }
 
 void MainWindow::layer_selection_changed_cb() {
@@ -77,6 +88,11 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     add_events(Gdk::EXPOSURE_MASK);
     builder_->get_widget_derived("canvas", canvas_);
 
+    tile_chooser_.reset(new TileChooser(canvas_->scene()));
+    tile_chooser_->signal_locations_changed().connect(
+        sigc::mem_fun(this, &MainWindow::tile_location_changed_cb)
+    );
+
     //Must happen after the canvas as been created
     level_.reset(new Level(canvas_->scene()));
 
@@ -86,6 +102,7 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     );
 
     _create_layer_list_model();
+    _create_tile_location_list_model();
 
     //Make the level name change when the text entry changes
     ui<Gtk::Entry>("level_name_box")->set_text(level_->name());
@@ -99,6 +116,11 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     );
     ui<Gtk::Button>("remove_layer_button")->signal_clicked().connect(
         sigc::mem_fun(this, &MainWindow::remove_layer_button_clicked_cb)
+    );
+
+    //Set up the signals for adding and removing tile folders
+    ui<Gtk::Button>("add_tile_location_button")->signal_clicked().connect(
+        sigc::mem_fun(this, &MainWindow::add_tile_location_button_clicked_cb)
     );
 
     maximize();
