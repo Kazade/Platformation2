@@ -28,7 +28,7 @@ public:
     std::set<std::string> directories() const { return directories_; }
 
     sigc::signal<void>& signal_locations_changed() { return signal_locations_changed_; }
-
+    sigc::signal<void, float>& signal_tile_loaded() { return signal_tile_loaded_; }
 private:
     kglt::Scene& scene_;
 
@@ -36,6 +36,7 @@ private:
     std::vector<TileChooserEntry> entries_;
 
     sigc::signal<void> signal_locations_changed_;
+    sigc::signal<void, float> signal_tile_loaded_;
 };
 
 }

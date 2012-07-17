@@ -62,7 +62,10 @@ public:
         int result = fd.run();
 
         if(result == Gtk::RESPONSE_OK) {
+            fd.hide();
+            ui<Gtk::ProgressBar>("progress_bar")->show();
             tile_chooser_->add_directory(fd.get_filename());
+            ui<Gtk::ProgressBar>("progress_bar")->hide();
         }
     }
 
@@ -77,7 +80,22 @@ public:
             row[tile_location_list_columns_.column_id] = i++;
             row[tile_location_list_columns_.folder] = directory;
         }
+
+        save_tile_locations();
     }
+
+    void tile_loaded_cb(float percentage_done) {
+        ui<Gtk::ProgressBar>("progress_bar")->set_fraction(percentage_done / 100.0);
+
+        //Run a few events to keep things reponsive without slowing down too much (while events_pending() seems to just grind to a halt)
+        int counter = 3;
+        while(counter--) {
+            Gtk::Main::iteration(false);
+        }
+    }
+
+    void save_tile_locations();
+    void load_tile_locations();
 
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
@@ -109,6 +127,7 @@ private:
 
     void _create_layer_list_model();
     void _create_tile_location_list_model();
+    void _generate_blank_config();
 };
 
 }

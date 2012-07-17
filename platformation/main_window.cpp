@@ -1,11 +1,20 @@
 #include <glibmm/i18n.h>
 #include <cassert>
+#include <fstream>
+
 #include "main_window.h"
 #include "level.h"
 #include "layer.h"
 #include "kazbase/fdo/base_directory.h"
+#include "kazbase/json/json.h"
+#include "kazbase/os/core.h"
+#include "kazbase/os/path.h"
+#include "kazbase/file_utils.h"
 
 namespace pn {
+
+static std::string CONFIG_DIR = os::path::join(fdo::xdg::get_config_home(), "platformation");
+static std::string CONFIG_PATH = os::path::join(CONFIG_DIR, "platformation.json");
 
 void MainWindow::_create_layer_list_model() {
     layer_list_model_ = Gtk::TreeStore::create(layer_list_columns_);
@@ -81,6 +90,39 @@ void MainWindow::level_layers_changed_cb() {
     }    
 }
 
+void MainWindow::save_tile_locations() {
+    json::JSON j;
+    json::Node& node = j.insert_array("locations");
+    for(std::string location: tile_chooser_->directories()) {
+        node.append_value(location);
+    }
+
+    std::ofstream fileout(CONFIG_PATH);
+    fileout << json::dumps(j);
+}
+
+void MainWindow::load_tile_locations() {
+    std::string contents = file_utils::read_contents(CONFIG_PATH);
+    json::JSON j = json::loads(contents);
+
+    if(j.has_key("locations")) {
+        for(uint32_t i = 0; i < j["locations"].length(); ++i) {
+            json::Node& n = j["locations"][i];
+            tile_chooser_->add_directory(n.get());
+        }
+    }
+}
+
+void MainWindow::_generate_blank_config() {
+    if(!os::path::exists(CONFIG_DIR)) {
+        os::make_dirs(CONFIG_DIR);
+    }
+
+    if(!os::path::exists(CONFIG_PATH)) {
+        os::touch(CONFIG_PATH);
+    }
+}
+
 MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     Gtk::Window(cobject),
     builder_(builder) {
@@ -91,6 +133,9 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     tile_chooser_.reset(new TileChooser(canvas_->scene()));
     tile_chooser_->signal_locations_changed().connect(
         sigc::mem_fun(this, &MainWindow::tile_location_changed_cb)
+    );
+    tile_chooser_->signal_tile_loaded().connect(
+        sigc::mem_fun(this, &MainWindow::tile_loaded_cb)
     );
 
     //Must happen after the canvas as been created
@@ -103,6 +148,8 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     _create_layer_list_model();
     _create_tile_location_list_model();
+    _generate_blank_config();
+
 
     //Make the level name change when the text entry changes
     ui<Gtk::Entry>("level_name_box")->set_text(level_->name());
@@ -123,7 +170,11 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         sigc::mem_fun(this, &MainWindow::add_tile_location_button_clicked_cb)
     );
 
+    ui<Gtk::ProgressBar>("progress_bar")->hide();
+
     maximize();
+
+    load_tile_locations();
 }
 
 }

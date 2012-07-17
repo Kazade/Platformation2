@@ -14,3 +14,9 @@ platformation/layer.h
 platformation/layer.cpp
 platformation/tile_chooser.h
 platformation/tile_chooser.cpp
+platformation/kazbase/json/json.h
+platformation/kazbase/json/json.cpp
+platformation/kazbase/string.cpp
+platformation/kazbase/string.h
+platformation/kazbase/file_utils.h
+platformation/kazbase/file_utils.cpp
