@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkImage" id="add_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-add</property>
+  </object>
+  <object class="GtkImage" id="add_image_2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-add</property>
+  </object>
   <object class="GtkListStore" id="layer_list_store">
     <columns>
       <!-- column-name name -->
@@ -8,6 +18,16 @@
       <!-- column-name active -->
       <column type="GdkPixbuf"/>
     </columns>
+  </object>
+  <object class="GtkImage" id="remove_image">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-remove</property>
+  </object>
+  <object class="GtkImage" id="remove_image_2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-remove</property>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -221,33 +241,36 @@
                                 <property name="can_focus">False</property>
                                 <child>
                                   <object class="GtkButton" id="remove_layer_button">
-                                    <property name="label">gtk-remove</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_action_appearance">False</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">remove_image</property>
+                                    <property name="relief">none</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="add_layer_button">
-                                    <property name="label">gtk-add</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_action_appearance">False</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">add_image</property>
+                                    <property name="relief">none</property>
+                                    <property name="image_position">bottom</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -330,34 +353,36 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <object class="GtkButton" id="button2">
-                                    <property name="label">gtk-remove</property>
+                                  <object class="GtkButton" id="remove_tile_location_button">
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_action_appearance">False</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">remove_image_2</property>
+                                    <property name="relief">none</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="add_tile_location_button">
-                                    <property name="label">gtk-add</property>
                                     <property name="use_action_appearance">False</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_action_appearance">False</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">add_image_2</property>
+                                    <property name="relief">none</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">True</property>
+                                    <property name="pack_type">end</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>

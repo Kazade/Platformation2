@@ -69,6 +69,16 @@ public:
         }
     }
 
+    void remove_tile_location_button_clicked_cb() {
+        Gtk::TreeView* view = ui<Gtk::TreeView>("tile_location_list");
+        Gtk::TreeModel::iterator iter = view->get_selection()->get_selected();
+        if(iter) {
+            std::string path = Glib::ustring((*iter)[tile_location_list_columns_.folder]);
+            L_DEBUG("Removing path: " + path);
+            tile_chooser_->remove_directory(path);
+        }
+    }
+
     void tile_location_changed_cb() {
         Gtk::TreeView* view = ui<Gtk::TreeView>("tile_location_list");
 
@@ -97,6 +107,7 @@ public:
     void save_tile_locations();
     void load_tile_locations();
 
+    bool key_press_event_cb(GdkEventKey* key);
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
     Canvas* canvas_;

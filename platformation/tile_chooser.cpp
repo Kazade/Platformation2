@@ -7,9 +7,53 @@
 
 namespace pn {
 
-TileChooser::TileChooser(kglt::Scene& scene):
-    scene_(scene) {
+const float TILE_CHOOSER_WIDTH = 2.0;
+const float TILE_CHOOSER_SPACING = 0.1;
 
+TileChooser::TileChooser(kglt::Scene& scene):
+    scene_(scene),
+    current_selection_(0) {
+
+    group_mesh_ = scene.new_mesh();
+    kglt::Mesh& m = scene.mesh(group_mesh_);
+
+    kglt::Mesh& selected_outline = kglt::return_new_mesh(scene_);
+    selected_outline.set_parent(&m);
+    kglt::procedural::mesh::rectangle_outline(selected_outline, TILE_CHOOSER_WIDTH, TILE_CHOOSER_WIDTH);
+    selected_outline.set_diffuse_colour(kglt::Colour(1.0, 0, 0, 1.0));
+    selected_outline.move_to(0, 0, 0.1);
+
+    slider_group_mesh_ = scene.new_mesh();
+    kglt::Mesh& slider = scene.mesh(slider_group_mesh_);
+    slider.set_parent(&m);
+
+    //Attach the group mesh to the camera, so we are always relative to it
+
+    m.set_parent(&scene.camera());
+    m.move_to(0, -6.25, 0);
+}
+
+void TileChooser::next() {
+    if(current_selection_ >= entries_.size() - 1) {
+        return;
+    }
+    current_selection_++;
+
+    kglt::Mesh& slider = scene_.mesh(slider_group_mesh_);
+    slider.move_to(-(TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING) * current_selection_, 0.0, 0.0);
+    update_hidden_tiles();
+}
+
+void TileChooser::previous() {
+    if(current_selection_ < 1) {
+        return;
+    }
+
+    current_selection_--;
+
+    kglt::Mesh& slider = scene_.mesh(slider_group_mesh_);
+    slider.move_to(-(TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING) * current_selection_, 0.0, 0.0);
+    update_hidden_tiles();
 }
 
 void TileChooser::add_directory(const std::string& tile_directory) {
@@ -31,6 +75,8 @@ void TileChooser::add_directory(const std::string& tile_directory) {
 
     int i = 0;
 
+    kglt::Mesh& slider = scene_.mesh(slider_group_mesh_);
+
     for(std::string abs_path: to_load) {
         TileChooserEntry new_entry;
 
@@ -40,20 +86,41 @@ void TileChooser::add_directory(const std::string& tile_directory) {
         new_entry.directory = tile_directory;
 
         kglt::Mesh& m = scene_.mesh(new_entry.mesh_id);
-        kglt::procedural::mesh::rectangle(m, 1.0, 1.0);
+        kglt::procedural::mesh::rectangle(m, TILE_CHOOSER_WIDTH, TILE_CHOOSER_WIDTH);
         m.apply_texture(new_entry.texture_id);
 
+        //Set the parent of this mesh to the slider group mesh
+        m.set_parent(&slider);
+        m.move_to(i * (TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING), 0, 0);
+
         entries_.push_back(new_entry);
+        update_hidden_tiles(); //FIXME: This is slow as arse
 
         ++i;
         signal_tile_loaded_((100.0 / float(to_load.size())) * float(i));
+
+
     }
 
+    update_hidden_tiles();
     signal_locations_changed_(); //Fire off the locations changed signal
 }
 
 void TileChooser::remove_directory(const std::string& tile_directory) {
     assert(container::contains(directories_, tile_directory));
+
+    /*
+       FIXME: We should see if these tiles are in use, if they are we should
+       give the option to cancel the remove. If the remove isn't cancelled
+       then those tiles should be reset to have no texture. I guess...
+    */
+
+    //Delete the meshes relating to these entries
+    for(TileChooserEntry& entry: entries_) {
+        if(entry.directory == tile_directory) {
+            scene_.delete_mesh(entry.mesh_id);
+        }
+    }
 
     //Remove all the entries that have this as the root directory
     entries_.erase(std::remove_if(
@@ -64,6 +131,31 @@ void TileChooser::remove_directory(const std::string& tile_directory) {
 
     //Erase the directory itself
     directories_.erase(tile_directory);
+    signal_locations_changed_(); //Fire off the locations changed signal
+}
+
+void TileChooser::update_hidden_tiles() {
+    /**
+       Basically, we want to hide the tiles that are more than 5
+       tiles away from the current selection, and show the ones that
+       are less or equal to that.
+    */
+
+    int32_t left = std::max((int32_t)0, int32_t(this->current_selection_) - 5);
+    int32_t right = std::min((int32_t)entries_.size(), int32_t(this->current_selection_) + 5);
+
+    for(uint32_t i = 0; i < entries_.size(); ++i) {
+        kglt::Mesh& m = scene_.mesh(entries_[i].mesh_id);
+        if(i >= left && i <= right) {
+            m.set_visible(true);
+
+            float a = 1.0; //1.0 - ((1.0 / 5.0) * (fabs(i - current_selection_)));
+            m.set_diffuse_colour(kglt::Colour(1.0, 1.0, 1.0, a));
+        } else {
+            m.set_visible(false);
+            m.set_diffuse_colour(kglt::Colour(1.0, 1.0, 1.0, 1.0));
+        }
+    }
 }
 
 }

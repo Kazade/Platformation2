@@ -45,7 +45,7 @@ GtkGLWidget::GtkGLWidget(BaseObjectType* cobject):
     signal_draw().connect(sigc::mem_fun(this, &GtkGLWidget::on_area_draw));
     //signal_event().connect(sigc::mem_fun(this, &GtkGLWidget::on_area_expose));
     signal_configure_event().connect(sigc::mem_fun(this, &GtkGLWidget::on_area_configure));
-    idle_connection_ = Glib::signal_timeout().connect(sigc::mem_fun(this, &GtkGLWidget::on_area_idle), 100);
+    idle_connection_ = Glib::signal_timeout().connect(sigc::mem_fun(this, &GtkGLWidget::on_area_idle), 200);
 
     queue_draw();
 }

@@ -10,6 +10,7 @@
 #include "kazbase/os/core.h"
 #include "kazbase/os/path.h"
 #include "kazbase/file_utils.h"
+#include "kazbase/string.h"
 
 namespace pn {
 
@@ -103,14 +104,22 @@ void MainWindow::save_tile_locations() {
 
 void MainWindow::load_tile_locations() {
     std::string contents = file_utils::read_contents(CONFIG_PATH);
+
+    if(str::strip(contents).empty()) {
+        L_INFO("Not loading locations from config as the config is empty");
+        return;
+    }
+
     json::JSON j = json::loads(contents);
 
+    ui<Gtk::ProgressBar>("progress_bar")->show();
     if(j.has_key("locations")) {
         for(uint32_t i = 0; i < j["locations"].length(); ++i) {
             json::Node& n = j["locations"][i];
             tile_chooser_->add_directory(n.get());
         }
     }
+    ui<Gtk::ProgressBar>("progress_bar")->hide();
 }
 
 void MainWindow::_generate_blank_config() {
@@ -123,11 +132,24 @@ void MainWindow::_generate_blank_config() {
     }
 }
 
+bool MainWindow::key_press_event_cb(GdkEventKey* key) {
+    L_DEBUG("Key press event received");
+    if(key->keyval == GDK_KEY_a) {
+        L_DEBUG("Changing to previous tile selection");
+        tile_chooser_->previous();
+    } else if (key->keyval == GDK_KEY_d) {
+        L_DEBUG("Changing to next tile selection");
+        tile_chooser_->next();
+    }
+    return true;
+}
+
 MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     Gtk::Window(cobject),
     builder_(builder) {
 
     add_events(Gdk::EXPOSURE_MASK);
+    add_events(Gdk::KEY_PRESS_MASK);
     builder_->get_widget_derived("canvas", canvas_);
 
     tile_chooser_.reset(new TileChooser(canvas_->scene()));
@@ -170,11 +192,25 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         sigc::mem_fun(this, &MainWindow::add_tile_location_button_clicked_cb)
     );
 
+    ui<Gtk::Button>("remove_tile_location_button")->signal_clicked().connect(
+        sigc::mem_fun(this, &MainWindow::remove_tile_location_button_clicked_cb)
+    );
+
     ui<Gtk::ProgressBar>("progress_bar")->hide();
+
+
+
+    signal_key_press_event().connect(
+        sigc::mem_fun(this, &MainWindow::key_press_event_cb)
+    );
+
+    canvas_->signal_key_press_event().connect(
+        sigc::mem_fun(this, &MainWindow::key_press_event_cb)
+    );
 
     maximize();
 
-    load_tile_locations();
+    Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
 }
 
 }

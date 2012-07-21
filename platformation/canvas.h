@@ -27,6 +27,7 @@ public:
     }
 
     double ortho_width() const { return ortho_width_; }
+
 private:
     void do_init();
     void do_resize(int width, int height);

@@ -29,14 +29,24 @@ public:
 
     sigc::signal<void>& signal_locations_changed() { return signal_locations_changed_; }
     sigc::signal<void, float>& signal_tile_loaded() { return signal_tile_loaded_; }
+
+    void next();
+    void previous();
+
 private:
     kglt::Scene& scene_;
+    kglt::MeshID group_mesh_;
+    kglt::MeshID slider_group_mesh_;
 
     std::set<std::string> directories_;
     std::vector<TileChooserEntry> entries_;
 
     sigc::signal<void> signal_locations_changed_;
     sigc::signal<void, float> signal_tile_loaded_;
+
+    uint32_t current_selection_;
+
+    void update_hidden_tiles();
 };
 
 }
