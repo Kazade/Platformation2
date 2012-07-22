@@ -1,6 +1,7 @@
 #include <glibmm/i18n.h>
 #include "layer.h"
 #include "level.h"
+#include "user_data_types.h"
 
 namespace pn {
 
@@ -30,12 +31,14 @@ void Layer::add_to_scene(kglt::Scene& scene) {
             //Generate a mesh for the tile
             kglt::Mesh& mesh = scene.mesh(new_mesh);
             kglt::procedural::mesh::rectangle(mesh, 1.0, 1.0, 0.5, 0.5);
+            mesh.set_user_data(&instance); //Set the extra data on the mesh to point to this tile instance
 
             //Generate a mesh for the border
             kglt::Mesh& border_mesh = scene.mesh(instance.border_mesh_id);
             kglt::procedural::mesh::rectangle_outline(border_mesh, 1.0, 1.0, 0.5, 0.5);
 
             border_mesh.set_parent(&mesh);
+            border_mesh.set_visible(false);
 
             mesh.move_to(float(x), float(z) - (float(parent_.vertical_tile_count()) / 2.0), -1.0 - (0.1 * (float) zindex()));
             border_mesh.move_to(0, 0, 0.01); //Move the border mesh slightly forward

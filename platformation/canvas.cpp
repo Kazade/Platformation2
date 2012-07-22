@@ -10,6 +10,10 @@ Canvas::Canvas(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builde
     scene().remove_all_passes();
     scene().add_pass(selection_);
     scene().add_pass(kglt::Renderer::ptr(new kglt::GenericRenderer(scene())));
+
+    signal_button_press_event().connect(
+        sigc::mem_fun(this, &Canvas::mouse_button_pressed_cb)
+    );
 }
 
 void Canvas::do_render() {
@@ -32,6 +36,13 @@ void Canvas::do_resize(int width, int height) {
     ortho_width_ = scene().pass(0).renderer().set_orthographic_projection_from_height(15.0, double(width) / double(height));
     scene().pass(1).viewport().set_size(width, height);
     scene().pass(1).renderer().set_orthographic_projection_from_height(15.0, double(width) / double(height));
+}
+
+bool Canvas::mouse_button_pressed_cb(GdkEventButton* event) {
+    kglt::MeshID selected = selection_->selected_mesh();
+    if(selected) {
+        signal_mesh_selected_(selected);
+    }
 }
 
 }

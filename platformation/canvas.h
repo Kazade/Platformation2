@@ -28,6 +28,9 @@ public:
 
     double ortho_width() const { return ortho_width_; }
 
+    bool mouse_button_pressed_cb(GdkEventButton* event);
+
+    sigc::signal<void, kglt::MeshID>& signal_mesh_selected() { return signal_mesh_selected_; }
 private:
     void do_init();
     void do_resize(int width, int height);
@@ -36,6 +39,8 @@ private:
     kglt::SelectionRenderer::ptr selection_;
 
     double ortho_width_;
+
+    sigc::signal<void, kglt::MeshID> signal_mesh_selected_;
 };
 
 }

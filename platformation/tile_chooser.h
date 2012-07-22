@@ -29,6 +29,7 @@ public:
 
     sigc::signal<void>& signal_locations_changed() { return signal_locations_changed_; }
     sigc::signal<void, float>& signal_tile_loaded() { return signal_tile_loaded_; }
+    sigc::signal<void, TileChooserEntry>& signal_selection_changed() { return signal_selection_changed_; }
 
     void next();
     void previous();
@@ -43,6 +44,7 @@ private:
 
     sigc::signal<void> signal_locations_changed_;
     sigc::signal<void, float> signal_tile_loaded_;
+    sigc::signal<void, TileChooserEntry> signal_selection_changed_;
 
     uint32_t current_selection_;
 

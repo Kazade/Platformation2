@@ -20,3 +20,4 @@ platformation/kazbase/string.cpp
 platformation/kazbase/string.h
 platformation/kazbase/file_utils.h
 platformation/kazbase/file_utils.cpp
+platformation/user_data_types.h

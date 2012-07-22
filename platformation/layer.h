@@ -9,6 +9,7 @@
 namespace pn {
 
 class Level;
+class Layer;
 
 struct TileInstance {
     TileInstance():

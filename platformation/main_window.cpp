@@ -146,7 +146,8 @@ bool MainWindow::key_press_event_cb(GdkEventKey* key) {
 
 MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     Gtk::Window(cobject),
-    builder_(builder) {
+    builder_(builder),
+    active_instance_(nullptr) {
 
     add_events(Gdk::EXPOSURE_MASK);
     add_events(Gdk::KEY_PRESS_MASK);
@@ -206,6 +207,14 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     canvas_->signal_key_press_event().connect(
         sigc::mem_fun(this, &MainWindow::key_press_event_cb)
+    );
+
+    canvas_->signal_mesh_selected().connect(
+        sigc::mem_fun(this, &MainWindow::mesh_selected_callback)
+    );
+
+    tile_chooser_->signal_selection_changed().connect(
+        sigc::mem_fun(this, &MainWindow::tile_selection_changed_callback)
     );
 
     maximize();

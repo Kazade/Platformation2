@@ -42,6 +42,7 @@ void TileChooser::next() {
     kglt::Mesh& slider = scene_.mesh(slider_group_mesh_);
     slider.move_to(-(TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING) * current_selection_, 0.0, 0.0);
     update_hidden_tiles();
+    signal_selection_changed_(entries_[current_selection_]);
 }
 
 void TileChooser::previous() {
@@ -54,6 +55,8 @@ void TileChooser::previous() {
     kglt::Mesh& slider = scene_.mesh(slider_group_mesh_);
     slider.move_to(-(TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING) * current_selection_, 0.0, 0.0);
     update_hidden_tiles();
+
+    signal_selection_changed_(entries_[current_selection_]);
 }
 
 void TileChooser::add_directory(const std::string& tile_directory) {

@@ -6,6 +6,8 @@
 #include "canvas.h"
 #include "level.h"
 #include "tile_chooser.h"
+#include "layer.h"
+#include "user_data_types.h"
 
 namespace pn {
 
@@ -80,8 +82,6 @@ public:
     }
 
     void tile_location_changed_cb() {
-        Gtk::TreeView* view = ui<Gtk::TreeView>("tile_location_list");
-
         tile_location_list_model_->clear();
 
         int32_t i = 0;
@@ -108,10 +108,51 @@ public:
     void load_tile_locations();
 
     bool key_press_event_cb(GdkEventKey* key);
+
+    void tile_selection_changed_callback(TileChooserEntry entry) {
+        if(active_instance_) {
+            kglt::Mesh& mesh = canvas_->scene().mesh(active_instance_->mesh_id);
+            mesh.apply_texture(entry.texture_id);
+        }
+    }
+
+    void mesh_selected_callback(kglt::MeshID mesh_id) {
+        L_DEBUG("Mesh selected: " + boost::lexical_cast<std::string>(mesh_id));
+        kglt::Mesh& m = canvas_->scene().mesh(mesh_id);
+        if(m.has_user_data()) {
+            try {
+                //Try and cast to a tile instance
+                TileInstance* tile_instance = m.user_data<TileInstance*>();
+                assert(tile_instance);
+
+                //If this mesh is part of a tile_instance
+                set_active_tile_instance(tile_instance);
+            } catch(boost::bad_any_cast& e) {
+                //If we can't then just do nothing for now
+                //TileChooser* tile_chooser = static_cast<TileChooser*>(m.user_data());
+                //TODO: Select the tile that was clicked - NEED TO SET user_data
+                //tile_chooser_->set_selected_by_mesh_id(mesh_id);
+            }
+        }
+    }
+
+    void set_active_tile_instance(TileInstance* instance) {
+        if(active_instance_) {
+            kglt::Mesh& old_border = canvas_->scene().mesh(active_instance_->border_mesh_id);
+            old_border.set_visible(false);
+        }
+
+        active_instance_ = instance;
+        kglt::Mesh& border = canvas_->scene().mesh(active_instance_->border_mesh_id);
+        border.set_diffuse_colour(kglt::Colour(0.0, 0.0, 1.0, 1.0));
+        border.set_visible(true);
+    }
+
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
     Canvas* canvas_;
     TileChooser::ptr tile_chooser_;
+    TileInstance* active_instance_;
 
     Level::ptr level_;
 
