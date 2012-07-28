@@ -31,6 +31,32 @@ public:
     bool mouse_button_pressed_cb(GdkEventButton* event);
 
     sigc::signal<void, kglt::MeshID>& signal_mesh_selected() { return signal_mesh_selected_; }
+
+
+    bool scroll_event_callback(GdkEventScroll* scroll_event) {
+        L_DEBUG("Scroll event received");
+
+        GdkModifierType modifiers = gtk_accelerator_get_default_mod_mask();
+
+        if((scroll_event->state & modifiers) == GDK_CONTROL_MASK) {
+            if(scroll_event->direction == GDK_SCROLL_UP || scroll_event->direction == GDK_SCROLL_DOWN) {
+                if(scroll_event->direction == GDK_SCROLL_UP) {
+                    ortho_height_ -= 0.1;
+                } else {
+                    ortho_height_ += 0.1;
+                }
+                ortho_width_ = scene().pass(0).renderer().set_orthographic_projection_from_height(
+                    ortho_height_, double(width()) / double(height())
+                );
+                scene().pass(1).renderer().set_orthographic_projection_from_height(
+                    ortho_height_, double(width()) / double(height())
+                );
+            }
+        }
+
+        return true;
+    }
+
 private:
     void do_init();
     void do_resize(int width, int height);
@@ -39,6 +65,7 @@ private:
     kglt::SelectionRenderer::ptr selection_;
 
     double ortho_width_;
+    double ortho_height_;
 
     sigc::signal<void, kglt::MeshID> signal_mesh_selected_;
 };
