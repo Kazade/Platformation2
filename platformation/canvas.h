@@ -41,9 +41,9 @@ public:
         if((scroll_event->state & modifiers) == GDK_CONTROL_MASK) {
             if(scroll_event->direction == GDK_SCROLL_UP || scroll_event->direction == GDK_SCROLL_DOWN) {
                 if(scroll_event->direction == GDK_SCROLL_UP) {
-                    ortho_height_ -= 0.1;
+                    ortho_height_ -= 0.2;
                 } else {
-                    ortho_height_ += 0.1;
+                    ortho_height_ += 0.2;
                 }
                 ortho_width_ = scene().pass(0).renderer().set_orthographic_projection_from_height(
                     ortho_height_, double(width()) / double(height())

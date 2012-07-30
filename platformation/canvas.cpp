@@ -12,6 +12,8 @@ Canvas::Canvas(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builde
     scene().add_pass(selection_);
     scene().add_pass(kglt::Renderer::ptr(new kglt::GenericRenderer(scene())));
 
+    add_events(Gdk::SCROLL_MASK);
+
     signal_button_press_event().connect(
         sigc::mem_fun(this, &Canvas::mouse_button_pressed_cb)
     );
@@ -28,7 +30,8 @@ void Canvas::do_render() {
 
 void Canvas::do_init() {
     scene().render_options.texture_enabled = true;
-    scene().pass().viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));
+    scene().pass(0).viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));
+    scene().pass(1).viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));
 
     L_DEBUG("Initializing the editor view");
 }
@@ -48,6 +51,8 @@ bool Canvas::mouse_button_pressed_cb(GdkEventButton* event) {
     if(selected) {
         signal_mesh_selected_(selected);
     }
+
+    return true;
 }
 
 }

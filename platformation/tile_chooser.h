@@ -34,6 +34,32 @@ public:
     void next();
     void previous();
 
+    void set_selected_by_mesh_id(kglt::MeshID mesh_id) {
+        uint32_t i = 0;
+        for(TileChooserEntry entry: entries_) {
+            if(entry.mesh_id == mesh_id) {
+                break;
+            }
+            ++i;
+        }
+
+        assert(i != entries_.size());
+
+        if(current_selection_ < i) {
+            while(current_selection_ < i) {
+                next();
+            }
+        } else if (current_selection_ > i) {
+            while(current_selection_ > i) {
+                previous();
+            }
+        } else {
+            //It's already selected, but fire a changed signal anyway
+            signal_selection_changed_(entries_[i]);
+        }
+    }
+
+    void pass_started_callback(kglt::Pass& pass);
 private:
     kglt::Scene& scene_;
     kglt::MeshID group_mesh_;

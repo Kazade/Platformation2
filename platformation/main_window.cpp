@@ -198,8 +198,8 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     );
 
     ui<Gtk::ProgressBar>("progress_bar")->hide();
-
-
+    ui<Gtk::Scrollbar>("main_vertical_scrollbar");
+    ui<Gtk::Scrollbar>("main_horizontal_scrollbar");
 
     signal_key_press_event().connect(
         sigc::mem_fun(this, &MainWindow::key_press_event_cb)
@@ -220,6 +220,8 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     maximize();
 
     Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
+
+    canvas_->scene().signal_render_pass_started().connect(sigc::mem_fun(this, &MainWindow::recalculate_scrollbars));
 }
 
 }

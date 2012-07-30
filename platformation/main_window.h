@@ -38,6 +38,32 @@ public:
     void level_layers_changed_cb();
     void layer_selection_changed_cb();
 
+    void recalculate_scrollbars(kglt::Pass& pass) {
+        if(!canvas_->scene().camera().frustum().initialized()) return;
+
+        double frustum_height = canvas_->scene().camera().frustum().near_height();
+        double frustum_width = canvas_->scene().camera().frustum().near_width();
+        double level_height = (double) level_->vertical_tile_count();
+        double level_width = (double) level_->horizontal_tile_count();
+
+        Glib::RefPtr<Gtk::Adjustment> vadj = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_adjustment();
+        if(vadj->get_page_size() != frustum_height) {
+            vadj->set_lower(0);
+            vadj->set_upper(level_height);
+            vadj->set_page_size(frustum_height);
+            vadj->set_step_increment(1.0);
+        }
+
+        Glib::RefPtr<Gtk::Adjustment> hadj = ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->get_adjustment();
+        double hpage_size = hadj->get_page_size();
+        if(hpage_size != frustum_width) {
+            hadj->set_lower(0);
+            hadj->set_upper(level_width);
+            hadj->set_page_size(frustum_width);
+            hadj->set_step_increment(1.0);
+        }
+    }
+
     void add_layer_button_clicked_cb() {
         level_->add_layer();
     }
@@ -113,6 +139,7 @@ public:
         if(active_instance_) {
             kglt::Mesh& mesh = canvas_->scene().mesh(active_instance_->mesh_id);
             mesh.apply_texture(entry.texture_id);
+            mesh.set_diffuse_colour(kglt::Colour(1, 1, 1, 1));
         }
     }
 
@@ -129,9 +156,12 @@ public:
                 set_active_tile_instance(tile_instance);
             } catch(boost::bad_any_cast& e) {
                 //If we can't then just do nothing for now
-                //TileChooser* tile_chooser = static_cast<TileChooser*>(m.user_data());
-                //TODO: Select the tile that was clicked - NEED TO SET user_data
-                //tile_chooser_->set_selected_by_mesh_id(mesh_id);
+                try {
+                    TileChooser* tile_chooser = m.user_data<TileChooser*>();
+                    tile_chooser->set_selected_by_mesh_id(mesh_id);
+                } catch (boost::bad_any_cast& e) {
+                    //pass
+                }
             }
         }
     }
@@ -139,13 +169,14 @@ public:
     void set_active_tile_instance(TileInstance* instance) {
         if(active_instance_) {
             kglt::Mesh& old_border = canvas_->scene().mesh(active_instance_->border_mesh_id);
-            old_border.set_visible(false);
+            old_border.move_to(0, 0, 0.1);
+            old_border.set_diffuse_colour(kglt::Colour(1.0, 1.0, 1.0, 1.0));
         }
 
-        active_instance_ = instance;
+        active_instance_ = instance;        
         kglt::Mesh& border = canvas_->scene().mesh(active_instance_->border_mesh_id);
         border.set_diffuse_colour(kglt::Colour(0.0, 0.0, 1.0, 1.0));
-        border.set_visible(true);
+        border.move_to(0, 0, 0.2);
     }
 
 private:

@@ -16,6 +16,7 @@ TileChooser::TileChooser(kglt::Scene& scene):
 
     group_mesh_ = scene.new_mesh();
     kglt::Mesh& m = scene.mesh(group_mesh_);
+    m.set_visible(false);
 
     kglt::Mesh& selected_outline = kglt::return_new_mesh(scene_);
     selected_outline.set_parent(&m);
@@ -30,7 +31,17 @@ TileChooser::TileChooser(kglt::Scene& scene):
     //Attach the group mesh to the camera, so we are always relative to it
 
     m.set_parent(&scene.camera());
-    m.move_to(0, -6.25, 0);
+
+    scene_.signal_render_pass_started().connect(sigc::mem_fun(this, &TileChooser::pass_started_callback));
+}
+
+void TileChooser::pass_started_callback(kglt::Pass& pass) {
+    //We need to do this in a signal so that we know when the frustum has been initialized
+    if (scene_.camera().frustum().initialized()) {
+        kglt::Mesh& m = scene_.mesh(group_mesh_);
+        m.move_to(0, -(scene_.camera().frustum().near_height() / 2.0) + 1.25, 0);
+        m.set_visible(true);
+    }
 }
 
 void TileChooser::next() {
@@ -91,6 +102,7 @@ void TileChooser::add_directory(const std::string& tile_directory) {
         kglt::Mesh& m = scene_.mesh(new_entry.mesh_id);
         kglt::procedural::mesh::rectangle(m, TILE_CHOOSER_WIDTH, TILE_CHOOSER_WIDTH);
         m.apply_texture(new_entry.texture_id);
+        m.set_user_data((TileChooser*)this);
 
         //Set the parent of this mesh to the slider group mesh
         m.set_parent(&slider);
