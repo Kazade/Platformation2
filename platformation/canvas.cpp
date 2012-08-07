@@ -33,7 +33,7 @@ void Canvas::do_init() {
     );
 
     scene().render_options.texture_enabled = true;
-    scene().pass().viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));        
+    scene().pass(1).viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));
 }
 
 void Canvas::do_resize(int width, int height) {
