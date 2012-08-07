@@ -45,12 +45,9 @@ public:
                 } else {
                     ortho_height_ += 0.2;
                 }
-                ortho_width_ = scene().pass(0).renderer().set_orthographic_projection_from_height(
+                ortho_width_ = scene().active_camera().set_orthographic_projection_from_height(
                     ortho_height_, double(width()) / double(height())
-                );
-                scene().pass(1).renderer().set_orthographic_projection_from_height(
-                    ortho_height_, double(width()) / double(height())
-                );
+                );                
             }
         }
 

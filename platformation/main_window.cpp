@@ -73,6 +73,10 @@ void MainWindow::layer_selection_changed_cb() {
 void MainWindow::level_layers_changed_cb() {
     layer_list_model_->clear();
 
+    if(!level_) {
+        return;
+    }
+
     Gtk::TreeView* view = ui<Gtk::TreeView>("layer_list");
 
     for(uint32_t i = 0; i < level_->layer_count(); ++i) {
@@ -153,29 +157,14 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     add_events(Gdk::KEY_PRESS_MASK);
     builder_->get_widget_derived("canvas", canvas_);
 
-    tile_chooser_.reset(new TileChooser(canvas_->scene()));
-    tile_chooser_->signal_locations_changed().connect(
-        sigc::mem_fun(this, &MainWindow::tile_location_changed_cb)
-    );
-    tile_chooser_->signal_tile_loaded().connect(
-        sigc::mem_fun(this, &MainWindow::tile_loaded_cb)
-    );
-
-    //Must happen after the canvas as been created
-    level_.reset(new Level(canvas_->scene()));
-
-    //Watch for layer changes on the level
-    level_->signal_layers_changed().connect(
-        sigc::mem_fun(this, &MainWindow::level_layers_changed_cb)
-    );
+    canvas_->signal_init().connect(sigc::mem_fun(this, &MainWindow::post_canvas_realize));
 
     _create_layer_list_model();
     _create_tile_location_list_model();
     _generate_blank_config();
 
 
-    //Make the level name change when the text entry changes
-    ui<Gtk::Entry>("level_name_box")->set_text(level_->name());
+    //Make the level name change when the text entry changes    
     ui<Gtk::Entry>("level_name_box")->signal_changed().connect(
         sigc::mem_fun(this, &MainWindow::level_name_box_changed_cb)
     );
@@ -213,15 +202,7 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         sigc::mem_fun(this, &MainWindow::mesh_selected_callback)
     );
 
-    tile_chooser_->signal_selection_changed().connect(
-        sigc::mem_fun(this, &MainWindow::tile_selection_changed_callback)
-    );
-
-    maximize();
-
-    Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
-
-    canvas_->scene().signal_render_pass_started().connect(sigc::mem_fun(this, &MainWindow::recalculate_scrollbars));
+    maximize();    
 }
 
 }

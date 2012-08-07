@@ -68,6 +68,7 @@ bool GtkGLWidget::on_area_idle() {
 void GtkGLWidget::on_area_realize() {
     if(make_current()) {
         L_DEBUG("Initializing a GL widget");
+        signal_init_();
         do_init();
     }
 }

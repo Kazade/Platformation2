@@ -29,17 +29,25 @@ TileChooser::TileChooser(kglt::Scene& scene):
     slider.set_parent(&m);
 
     //Attach the group mesh to the camera, so we are always relative to it
+    kglt::OverlayID oid = scene.new_overlay();
+    kglt::Overlay& overlay = scene.overlay(oid);
 
-    m.set_parent(&scene.camera());
+    float ratio = float(overlay.scene().window().width()) / float(overlay.scene().window().height());
+    float w = 20;
+    float h = w * ratio;
+    overlay.set_ortho(-w/2, w/2, -h/2, h/2);
 
-    scene_.signal_render_pass_started().connect(sigc::mem_fun(this, &TileChooser::pass_started_callback));
+    m.set_parent(&overlay);
+    m.move_to(0, (-h/2) + 1.25, 0);
+
+    //scene_.signal_render_pass_started().connect(sigc::mem_fun(this, &TileChooser::pass_started_callback));
 }
 
 void TileChooser::pass_started_callback(kglt::Pass& pass) {
     //We need to do this in a signal so that we know when the frustum has been initialized
-    if (scene_.camera().frustum().initialized()) {
+    if (scene_.active_camera().frustum().initialized()) {
         kglt::Mesh& m = scene_.mesh(group_mesh_);
-        m.move_to(0, -(scene_.camera().frustum().near_height() / 2.0) + 1.25, 0);
+        m.move_to(0, -(scene_.active_camera().frustum().near_height() / 2.0) + 1.25, 0);
         m.set_visible(true);
     }
 }
@@ -106,7 +114,8 @@ void TileChooser::add_directory(const std::string& tile_directory) {
 
         //Set the parent of this mesh to the slider group mesh
         m.set_parent(&slider);
-        m.move_to(i * (TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING), 0, 0);
+        float xpos = i * (TILE_CHOOSER_WIDTH + TILE_CHOOSER_SPACING);
+        m.move_to(xpos, 0, 0);
 
         entries_.push_back(new_entry);
         update_hidden_tiles(); //FIXME: This is slow as arse

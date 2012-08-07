@@ -39,10 +39,10 @@ public:
     void layer_selection_changed_cb();
 
     void recalculate_scrollbars(kglt::Pass& pass) {
-        if(!canvas_->scene().camera().frustum().initialized()) return;
+        if(!canvas_->scene().active_camera().frustum().initialized()) return;
 
-        double frustum_height = canvas_->scene().camera().frustum().near_height();
-        double frustum_width = canvas_->scene().camera().frustum().near_width();
+        double frustum_height = canvas_->scene().active_camera().frustum().near_height();
+        double frustum_width = canvas_->scene().active_camera().frustum().near_width();
         double level_height = (double) level_->vertical_tile_count();
         double level_width = (double) level_->horizontal_tile_count();
 
@@ -177,6 +177,35 @@ public:
         kglt::Mesh& border = canvas_->scene().mesh(active_instance_->border_mesh_id);
         border.set_diffuse_colour(kglt::Colour(0.0, 0.0, 1.0, 1.0));
         border.move_to(0, 0, 0.2);
+    }
+
+    void post_canvas_realize() {
+        L_DEBUG("Initializing the tile chooser");
+
+        tile_chooser_.reset(new TileChooser(canvas_->scene()));
+        tile_chooser_->signal_locations_changed().connect(
+            sigc::mem_fun(this, &MainWindow::tile_location_changed_cb)
+        );
+        tile_chooser_->signal_tile_loaded().connect(
+            sigc::mem_fun(this, &MainWindow::tile_loaded_cb)
+        );
+
+        tile_chooser_->signal_selection_changed().connect(
+            sigc::mem_fun(this, &MainWindow::tile_selection_changed_callback)
+        );
+
+        //Must happen after the canvas as been created
+        level_.reset(new Level(canvas_->scene()));
+
+        //Watch for layer changes on the level
+        level_->signal_layers_changed().connect(
+            sigc::mem_fun(this, &MainWindow::level_layers_changed_cb)
+        );
+
+        ui<Gtk::Entry>("level_name_box")->set_text(level_->name());
+
+        canvas_->scene().signal_render_pass_started().connect(sigc::mem_fun(this, &MainWindow::recalculate_scrollbars));
+        Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
     }
 
 private:

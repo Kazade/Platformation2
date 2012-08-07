@@ -25,6 +25,7 @@ public:
     bool on_area_configure(GdkEventConfigure* event);
     bool on_area_idle();
     
+    sigc::signal<void>& signal_init() { return signal_init_; }
 protected:
     bool make_current();
     
@@ -33,9 +34,12 @@ protected:
     virtual void do_resize(int width, int height) {}    
     virtual void swap_gl_buffers();
 
+    sigc::signal<void> signal_init_;
 private:
     GLXContext context_;
     sigc::connection idle_connection_;
+
+
     
     
 };
