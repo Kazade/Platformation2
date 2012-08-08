@@ -187,8 +187,12 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
     );
 
     ui<Gtk::ProgressBar>("progress_bar")->hide();
-    ui<Gtk::Scrollbar>("main_vertical_scrollbar");
-    ui<Gtk::Scrollbar>("main_horizontal_scrollbar");
+    ui<Gtk::Scrollbar>("main_vertical_scrollbar")->signal_value_changed().connect(
+        sigc::mem_fun(this, &MainWindow::scrollbar_value_changed)
+    );
+    ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->signal_value_changed().connect(
+        sigc::mem_fun(this, &MainWindow::scrollbar_value_changed)
+    );
 
     signal_key_press_event().connect(
         sigc::mem_fun(this, &MainWindow::key_press_event_cb)
@@ -200,6 +204,10 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     canvas_->signal_mesh_selected().connect(
         sigc::mem_fun(this, &MainWindow::mesh_selected_callback)
+    );
+
+    canvas_->signal_scroll_event().connect(
+        sigc::mem_fun(this, &MainWindow::canvas_scroll_event)
     );
 
     maximize();    

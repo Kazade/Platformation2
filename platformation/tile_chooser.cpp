@@ -43,15 +43,6 @@ TileChooser::TileChooser(kglt::Scene& scene):
     //scene_.signal_render_pass_started().connect(sigc::mem_fun(this, &TileChooser::pass_started_callback));
 }
 
-void TileChooser::pass_started_callback(kglt::Pass& pass) {
-    //We need to do this in a signal so that we know when the frustum has been initialized
-    if (scene_.active_camera().frustum().initialized()) {
-        kglt::Mesh& m = scene_.mesh(group_mesh_);
-        m.move_to(0, -(scene_.active_camera().frustum().near_height() / 2.0) + 1.25, 0);
-        m.set_visible(true);
-    }
-}
-
 void TileChooser::next() {
     if(current_selection_ >= entries_.size() - 1) {
         return;

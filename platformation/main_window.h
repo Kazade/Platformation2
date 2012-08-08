@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 
+#include "kazbase/logging/logging.h"
 #include "canvas.h"
 #include "level.h"
 #include "tile_chooser.h"
@@ -38,6 +39,34 @@ public:
     void level_layers_changed_cb();
     void layer_selection_changed_cb();
 
+    void scrollbar_value_changed() {
+        double x_pos = ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->get_value();
+        double y_pos = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_value();
+        canvas_->scene().active_camera().move_to(x_pos, -y_pos, 0.0);
+    }
+
+    bool canvas_scroll_event(GdkEventScroll* scroll_event) {
+        GdkModifierType modifiers = gtk_accelerator_get_default_mod_mask();
+        if((scroll_event->state & modifiers) == GDK_CONTROL_MASK) {
+            //Ignore if CTRL is pressed
+            return false;
+        }
+
+        if(scroll_event->direction == GDK_SCROLL_UP) {
+            double value = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_value();
+            double step = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_adjustment()->get_step_increment();
+            ui<Gtk::Scrollbar>("main_vertical_scrollbar")->set_value(value - step);
+            return true;
+        }
+        if (scroll_event->direction == GDK_SCROLL_DOWN) {
+            double value = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_value();
+            double step = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_adjustment()->get_step_increment();
+            ui<Gtk::Scrollbar>("main_vertical_scrollbar")->set_value(value + step);
+            return true;
+        }
+        return false;
+    }
+
     void recalculate_scrollbars(kglt::Pass& pass) {
         if(!canvas_->scene().active_camera().frustum().initialized()) return;
 
@@ -48,8 +77,8 @@ public:
 
         Glib::RefPtr<Gtk::Adjustment> vadj = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_adjustment();
         if(vadj->get_page_size() != frustum_height) {
-            vadj->set_lower(0);
-            vadj->set_upper(level_height);
+            vadj->set_lower(-level_height / 2.0);
+            vadj->set_upper(level_height / 2.0 + frustum_height);
             vadj->set_page_size(frustum_height);
             vadj->set_step_increment(1.0);
         }
@@ -57,8 +86,8 @@ public:
         Glib::RefPtr<Gtk::Adjustment> hadj = ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->get_adjustment();
         double hpage_size = hadj->get_page_size();
         if(hpage_size != frustum_width) {
-            hadj->set_lower(0);
-            hadj->set_upper(level_width);
+            hadj->set_lower(-level_width / 2.0);
+            hadj->set_upper(level_width / 2.0 + frustum_width);
             hadj->set_page_size(frustum_width);
             hadj->set_step_increment(1.0);
         }

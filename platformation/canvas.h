@@ -48,11 +48,13 @@ public:
                 ortho_width_ = scene().active_camera().set_orthographic_projection_from_height(
                     ortho_height_, double(width()) / double(height())
                 );                
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
+
 
 private:
     void do_init();
@@ -65,6 +67,7 @@ private:
     double ortho_height_;
 
     sigc::signal<void, kglt::MeshID> signal_mesh_selected_;
+
 };
 
 }

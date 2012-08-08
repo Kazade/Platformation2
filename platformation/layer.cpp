@@ -20,6 +20,7 @@ void Layer::resize(uint32_t new_width, uint32_t new_height) {
 
 void Layer::add_to_scene(kglt::Scene& scene) {
     mesh_container_ = scene.new_mesh();
+    scene.mesh(mesh_container_).move_to(-(float(parent_.horizontal_tile_count()) / 2.0f), 0.0f, 0.0f);
 
     for(uint32_t z = 0; z < parent_.vertical_tile_count(); ++z) {
         for(uint32_t x = 0; x < parent_.horizontal_tile_count(); ++x) {

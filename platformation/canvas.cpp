@@ -9,7 +9,7 @@ Canvas::Canvas(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builde
 }
 
 void Canvas::do_render() {
-    scene().active_camera().move_to((ortho_width() / 2.0), 0, 0);
+    //scene().active_camera().move_to((ortho_width() / 2.0), 0, 0);
     update();
 }
 

@@ -59,7 +59,6 @@ public:
         }
     }
 
-    void pass_started_callback(kglt::Pass& pass);
 private:
     kglt::Scene& scene_;
     kglt::MeshID group_mesh_;
