@@ -29,9 +29,6 @@ void MainWindow::_create_layer_list_model() {
     Glib::RefPtr<Gtk::TreeSelection> selection = view->get_selection();
     selection->set_mode (Gtk::SELECTION_SINGLE);
     selection->signal_changed().connect(sigc::mem_fun(this, &MainWindow::layer_selection_changed_cb));
-
-    //Force a rebuild of the list
-    level_layers_changed_cb();
 }
 
 void MainWindow::_create_tile_location_list_model() {
@@ -99,7 +96,7 @@ void MainWindow::save_tile_locations() {
     json::JSON j;
     json::Node& node = j.insert_array("locations");
     for(std::string location: tile_chooser_->directories()) {
-        node.append_value(location);
+        node.append_value().set(location);
     }
 
     std::ofstream fileout(CONFIG_PATH);
@@ -208,6 +205,10 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     canvas_->signal_scroll_event().connect(
         sigc::mem_fun(this, &MainWindow::canvas_scroll_event)
+    );
+
+    ui<Gtk::ToolButton>("save_toolbutton")->signal_clicked().connect(
+        sigc::mem_fun(this, &MainWindow::save_button_clicked_callback)
     );
 
     maximize();    

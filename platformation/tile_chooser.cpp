@@ -10,6 +10,8 @@ namespace pn {
 const float TILE_CHOOSER_WIDTH = 2.0;
 const float TILE_CHOOSER_SPACING = 0.1;
 
+static TileChooserEntryID counter = 0;
+
 TileChooser::TileChooser(kglt::Scene& scene):
     scene_(scene),
     current_selection_(0) {
@@ -92,6 +94,7 @@ void TileChooser::add_directory(const std::string& tile_directory) {
 
     for(std::string abs_path: to_load) {
         TileChooserEntry new_entry;
+        new_entry.id = ++counter;
 
         new_entry.mesh_id = scene_.new_mesh();
         new_entry.texture_id = kglt::create_texture_from_file(scene_.window(), abs_path);

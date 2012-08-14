@@ -9,6 +9,7 @@
 #include "tile_chooser.h"
 #include "layer.h"
 #include "user_data_types.h"
+#include "serializers/pfn_serializer.h"
 
 namespace pn {
 
@@ -80,7 +81,7 @@ public:
             vadj->set_lower(-level_height / 2.0);
             vadj->set_upper(level_height / 2.0 + frustum_height);
             vadj->set_page_size(frustum_height);
-            vadj->set_step_increment(1.0);
+            vadj->set_step_increment(0.1);
         }
 
         Glib::RefPtr<Gtk::Adjustment> hadj = ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->get_adjustment();
@@ -89,7 +90,7 @@ public:
             hadj->set_lower(-level_width / 2.0);
             hadj->set_upper(level_width / 2.0 + frustum_width);
             hadj->set_page_size(frustum_width);
-            hadj->set_step_increment(1.0);
+            hadj->set_step_increment(0.1);
         }
     }
 
@@ -199,7 +200,7 @@ public:
         if(active_instance_) {
             kglt::Mesh& old_border = canvas_->scene().mesh(active_instance_->border_mesh_id);
             old_border.move_to(0, 0, 0.1);
-            old_border.set_diffuse_colour(kglt::Colour(1.0, 1.0, 1.0, 1.0));
+            old_border.set_diffuse_colour(kglt::Colour(0.8, 0.8, 0.8, 0.5));
         }
 
         active_instance_ = instance;        
@@ -235,7 +236,27 @@ public:
 
         canvas_->scene().signal_render_pass_started().connect(sigc::mem_fun(this, &MainWindow::recalculate_scrollbars));
         Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
+
+        //Force a rebuild of the layer list
+        level_layers_changed_cb();
     }
+
+    void save_button_clicked_callback() {
+        Gtk::FileChooserDialog fd("Please choose a file", Gtk::FILE_CHOOSER_ACTION_SAVE);
+        fd.set_transient_for(*this);
+        fd.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+        fd.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+
+        int result = fd.run();
+
+        if(result == Gtk::RESPONSE_OK) {
+            fd.hide();
+
+            PFNSerializer serializer(*level_);
+            serializer.save_to(fd.get_filename());
+        }
+    }
+
 
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
@@ -269,6 +290,7 @@ private:
     void _create_layer_list_model();
     void _create_tile_location_list_model();
     void _generate_blank_config();
+
 };
 
 }

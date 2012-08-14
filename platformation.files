@@ -21,3 +21,7 @@ platformation/kazbase/string.h
 platformation/kazbase/file_utils.h
 platformation/kazbase/file_utils.cpp
 platformation/user_data_types.h
+platformation/level_serializer.h
+platformation/serializers/pfn_serializer.h
+platformation/serializers/pfn_serializer.cpp
+platformation/kazbase/xrange.h

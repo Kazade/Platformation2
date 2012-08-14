@@ -4,7 +4,7 @@ namespace pn {
 
 Canvas::Canvas(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     GtkGLWidget(cobject),
-    ortho_height_(15.0) {
+    ortho_height_(2.0) {
 
 }
 

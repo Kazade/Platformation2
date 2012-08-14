@@ -66,8 +66,7 @@ private:
     double ortho_width_;
     double ortho_height_;
 
-    sigc::signal<void, kglt::MeshID> signal_mesh_selected_;
-
+    sigc::signal<void, kglt::MeshID> signal_mesh_selected_;    
 };
 
 }

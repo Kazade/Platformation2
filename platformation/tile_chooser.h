@@ -10,7 +10,11 @@
 
 namespace pn {
 
-struct TileChooserEntry {
+typedef uint32_t TileChooserEntryID;
+
+struct TileChooserEntry {    
+    TileChooserEntryID id;
+
     kglt::TextureID texture_id;
     kglt::MeshID mesh_id;
     std::string directory;
@@ -57,6 +61,16 @@ public:
             //It's already selected, but fire a changed signal anyway
             signal_selection_changed_(entries_[i]);
         }
+    }
+
+    TileChooserEntry entry_by_id(TileChooserEntryID id) {
+        for(TileChooserEntry entry: entries_) {
+            if(entry.id == id) {
+                return entry;
+            }
+        }
+
+        throw std::logic_error("Tried to get an invalid tile chooser entry");
     }
 
 private:

@@ -5,6 +5,7 @@
 #include <tr1/memory>
 
 #include <kglt/kglt.h>
+#include "tile_chooser.h"
 
 namespace pn {
 
@@ -13,10 +14,12 @@ class Layer;
 
 struct TileInstance {
     TileInstance():
+        tile_chooser_entry_id(0),
         tile_image_id(-1) {
 
     }
 
+    TileChooserEntryID tile_chooser_entry_id;
     int32_t tile_image_id;
     kglt::MeshID mesh_id;
     kglt::MeshID border_mesh_id;
@@ -37,6 +40,7 @@ public:
 
     void resize(uint32_t new_width, uint32_t new_height);
 
+    TileInstance& tile_at(uint32_t idx) { return tiles_.at(idx); }
 private:
     Level& parent_;
 

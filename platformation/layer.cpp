@@ -39,6 +39,7 @@ void Layer::add_to_scene(kglt::Scene& scene) {
             kglt::Mesh& border_mesh = scene.mesh(instance.border_mesh_id);
             kglt::procedural::mesh::rectangle_outline(border_mesh, 1.0, 1.0, 0.5, 0.5);
 
+            border_mesh.set_diffuse_colour(kglt::Colour(0.8, 0.8, 0.8, 0.5));
             border_mesh.set_parent(&mesh);
             //border_mesh.set_visible(false);
 
