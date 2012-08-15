@@ -122,7 +122,7 @@ public:
         if(result == Gtk::RESPONSE_OK) {
             fd.hide();
             ui<Gtk::ProgressBar>("progress_bar")->show();
-            tile_chooser_->add_directory(fd.get_filename());
+            canvas_->tile_chooser().add_directory(fd.get_filename());
             ui<Gtk::ProgressBar>("progress_bar")->hide();
         }
     }
@@ -133,7 +133,7 @@ public:
         if(iter) {
             std::string path = Glib::ustring((*iter)[tile_location_list_columns_.folder]);
             L_DEBUG("Removing path: " + path);
-            tile_chooser_->remove_directory(path);
+            canvas_->tile_chooser().remove_directory(path);
         }
     }
 
@@ -141,7 +141,7 @@ public:
         tile_location_list_model_->clear();
 
         int32_t i = 0;
-        for(std::string directory: tile_chooser_->directories()) {
+        for(std::string directory: canvas_->tile_chooser().directories()) {
             Gtk::TreeModel::Row row = *(tile_location_list_model_->append());
             row[tile_location_list_columns_.column_id] = i++;
             row[tile_location_list_columns_.folder] = directory;
@@ -165,63 +165,12 @@ public:
 
     bool key_press_event_cb(GdkEventKey* key);
 
-    void tile_selection_changed_callback(TileChooserEntry entry) {
-        if(active_instance_) {
-            kglt::Mesh& mesh = canvas_->scene().mesh(active_instance_->mesh_id);
-            mesh.apply_texture(entry.texture_id);
-            mesh.set_diffuse_colour(kglt::Colour(1, 1, 1, 1));
-        }
-    }
-
-    void mesh_selected_callback(kglt::MeshID mesh_id) {
-        L_DEBUG("Mesh selected: " + boost::lexical_cast<std::string>(mesh_id));
-        kglt::Mesh& m = canvas_->scene().mesh(mesh_id);
-        if(m.has_user_data()) {
-            try {
-                //Try and cast to a tile instance
-                TileInstance* tile_instance = m.user_data<TileInstance*>();
-                assert(tile_instance);
-
-                //If this mesh is part of a tile_instance
-                set_active_tile_instance(tile_instance);
-            } catch(boost::bad_any_cast& e) {
-                //If we can't then just do nothing for now
-                try {
-                    TileChooser* tile_chooser = m.user_data<TileChooser*>();
-                    tile_chooser->set_selected_by_mesh_id(mesh_id);
-                } catch (boost::bad_any_cast& e) {
-                    //pass
-                }
-            }
-        }
-    }
-
-    void set_active_tile_instance(TileInstance* instance) {
-        if(active_instance_) {
-            kglt::Mesh& old_border = canvas_->scene().mesh(active_instance_->border_mesh_id);
-            old_border.move_to(0, 0, 0.1);
-            old_border.set_diffuse_colour(kglt::Colour(0.8, 0.8, 0.8, 0.5));
-        }
-
-        active_instance_ = instance;        
-        kglt::Mesh& border = canvas_->scene().mesh(active_instance_->border_mesh_id);
-        border.set_diffuse_colour(kglt::Colour(0.0, 0.0, 1.0, 1.0));
-        border.move_to(0, 0, 0.2);
-    }
-
     void post_canvas_realize() {
-        L_DEBUG("Initializing the tile chooser");
-
-        tile_chooser_.reset(new TileChooser(canvas_->scene()));
-        tile_chooser_->signal_locations_changed().connect(
+        canvas_->tile_chooser().signal_locations_changed().connect(
             sigc::mem_fun(this, &MainWindow::tile_location_changed_cb)
         );
-        tile_chooser_->signal_tile_loaded().connect(
+        canvas_->tile_chooser().signal_tile_loaded().connect(
             sigc::mem_fun(this, &MainWindow::tile_loaded_cb)
-        );
-
-        tile_chooser_->signal_selection_changed().connect(
-            sigc::mem_fun(this, &MainWindow::tile_selection_changed_callback)
         );
 
         //Must happen after the canvas as been created
@@ -260,9 +209,7 @@ public:
 
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
-    Canvas* canvas_;
-    TileChooser::ptr tile_chooser_;
-    TileInstance* active_instance_;
+    Canvas* canvas_;    
 
     Level::ptr level_;
 

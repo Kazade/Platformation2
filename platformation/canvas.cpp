@@ -4,8 +4,10 @@ namespace pn {
 
 Canvas::Canvas(BaseObjectType *cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     GtkGLWidget(cobject),
-    ortho_height_(2.0) {
+    ortho_height_(2.0),
+    active_instance_(nullptr) {
 
+    signal_mesh_selected().connect(sigc::mem_fun(this, &Canvas::mesh_selected_callback));
 }
 
 void Canvas::do_render() {
@@ -34,6 +36,16 @@ void Canvas::do_init() {
 
     scene().render_options.texture_enabled = true;
     scene().pass(1).viewport().set_background_colour(kglt::Colour(0.2078, 0.494, 0.78, 0.5));
+
+    L_DEBUG("Initializing the tile chooser");
+
+    tile_chooser_.reset(new TileChooser(scene()));
+
+    tile_chooser().signal_selection_changed().connect(
+        sigc::mem_fun(this, &Canvas::tile_selection_changed_callback)
+    );
+
+    signal_post_init_();
 }
 
 void Canvas::do_resize(int width, int height) {
@@ -57,6 +69,50 @@ bool Canvas::mouse_button_pressed_cb(GdkEventButton* event) {
     }
 
     return true;
+}
+
+void Canvas::mesh_selected_callback(kglt::MeshID mesh_id) {
+    L_DEBUG("Mesh selected: " + boost::lexical_cast<std::string>(mesh_id));
+    kglt::Mesh& m = scene().mesh(mesh_id);
+    if(m.has_user_data()) {
+        try {
+            //Try and cast to a tile instance
+            TileInstance* tile_instance = m.user_data<TileInstance*>();
+            assert(tile_instance);
+
+            //If this mesh is part of a tile_instance
+            set_active_tile_instance(tile_instance);
+        } catch(boost::bad_any_cast& e) {
+            //If we can't then just do nothing for now
+            try {
+                TileChooser* tile_chooser = m.user_data<TileChooser*>();
+                tile_chooser->set_selected_by_mesh_id(mesh_id);
+            } catch (boost::bad_any_cast& e) {
+                //pass
+            }
+        }
+    }
+}
+
+void Canvas::set_active_tile_instance(TileInstance* instance) {
+    if(active_instance_) {
+        kglt::Mesh& old_border = scene().mesh(active_instance_->border_mesh_id);
+        old_border.move_to(0, 0, 0.1);
+        old_border.set_diffuse_colour(kglt::Colour(0.8, 0.8, 0.8, 0.5));
+    }
+
+    active_instance_ = instance;
+    kglt::Mesh& border = scene().mesh(active_instance_->border_mesh_id);
+    border.set_diffuse_colour(kglt::Colour(0.0, 0.0, 1.0, 1.0));
+    border.move_to(0, 0, 0.2);
+}
+
+void Canvas::tile_selection_changed_callback(TileChooserEntry entry) {
+    if(active_instance_) {
+        kglt::Mesh& mesh = scene().mesh(active_instance_->mesh_id);
+        mesh.apply_texture(entry.texture_id);
+        mesh.set_diffuse_colour(kglt::Colour(1, 1, 1, 1));
+    }
 }
 
 }

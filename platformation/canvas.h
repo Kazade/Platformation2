@@ -7,6 +7,8 @@
 #include "kglt/window_base.h"
 #include "kglt/kglt.h"
 
+#include "layer.h"
+
 namespace pn {
 
 class Canvas : public GtkGLWidget, public kglt::WindowBase {
@@ -31,7 +33,7 @@ public:
     bool mouse_button_pressed_cb(GdkEventButton* event);
 
     sigc::signal<void, kglt::MeshID>& signal_mesh_selected() { return signal_mesh_selected_; }
-
+    sigc::signal<void>& signal_post_init() { return signal_post_init_; }
 
     bool scroll_event_callback(GdkEventScroll* scroll_event) {
         L_DEBUG("Scroll event received");
@@ -55,7 +57,7 @@ public:
         return false;
     }
 
-
+    TileChooser& tile_chooser() { return *tile_chooser_; }
 private:
     void do_init();
     void do_resize(int width, int height);
@@ -67,6 +69,14 @@ private:
     double ortho_height_;
 
     sigc::signal<void, kglt::MeshID> signal_mesh_selected_;    
+    sigc::signal<void> signal_post_init_;
+
+    TileChooser::ptr tile_chooser_;
+    TileInstance* active_instance_;
+
+    void mesh_selected_callback(kglt::MeshID mesh_id);
+    void set_active_tile_instance(TileInstance* instance);
+    void tile_selection_changed_callback(TileChooserEntry entry);
 };
 
 }

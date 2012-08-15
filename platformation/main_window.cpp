@@ -95,7 +95,7 @@ void MainWindow::level_layers_changed_cb() {
 void MainWindow::save_tile_locations() {
     json::JSON j;
     json::Node& node = j.insert_array("locations");
-    for(std::string location: tile_chooser_->directories()) {
+    for(std::string location: canvas_->tile_chooser().directories()) {
         node.append_value().set(location);
     }
 
@@ -117,7 +117,7 @@ void MainWindow::load_tile_locations() {
     if(j.has_key("locations")) {
         for(uint32_t i = 0; i < j["locations"].length(); ++i) {
             json::Node& n = j["locations"][i];
-            tile_chooser_->add_directory(n.get());
+            canvas_->tile_chooser().add_directory(n.get());
         }
     }
     ui<Gtk::ProgressBar>("progress_bar")->hide();
@@ -137,24 +137,23 @@ bool MainWindow::key_press_event_cb(GdkEventKey* key) {
     L_DEBUG("Key press event received");
     if(key->keyval == GDK_KEY_a) {
         L_DEBUG("Changing to previous tile selection");
-        tile_chooser_->previous();
+        canvas_->tile_chooser().previous();
     } else if (key->keyval == GDK_KEY_d) {
         L_DEBUG("Changing to next tile selection");
-        tile_chooser_->next();
+        canvas_->tile_chooser().next();
     }
     return true;
 }
 
 MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& builder):
     Gtk::Window(cobject),
-    builder_(builder),
-    active_instance_(nullptr) {
+    builder_(builder) {
 
     add_events(Gdk::EXPOSURE_MASK);
     add_events(Gdk::KEY_PRESS_MASK);
     builder_->get_widget_derived("canvas", canvas_);
 
-    canvas_->signal_init().connect(sigc::mem_fun(this, &MainWindow::post_canvas_realize));
+    canvas_->signal_post_init().connect(sigc::mem_fun(this, &MainWindow::post_canvas_realize));
 
     _create_layer_list_model();
     _create_tile_location_list_model();
@@ -197,10 +196,6 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
 
     canvas_->signal_key_press_event().connect(
         sigc::mem_fun(this, &MainWindow::key_press_event_cb)
-    );
-
-    canvas_->signal_mesh_selected().connect(
-        sigc::mem_fun(this, &MainWindow::mesh_selected_callback)
     );
 
     canvas_->signal_scroll_event().connect(
