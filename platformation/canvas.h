@@ -7,6 +7,7 @@
 #include "kglt/window_base.h"
 #include "kglt/kglt.h"
 
+#include "level.h"
 #include "layer.h"
 
 namespace pn {
@@ -58,6 +59,7 @@ public:
     }
 
     TileChooser& tile_chooser() { return *tile_chooser_; }
+    Level& level() { return *level_; }
 private:
     void do_init();
     void do_resize(int width, int height);
@@ -73,6 +75,7 @@ private:
 
     TileChooser::ptr tile_chooser_;
     TileInstance* active_instance_;
+    Level::ptr level_;
 
     void mesh_selected_callback(kglt::MeshID mesh_id);
     void set_active_tile_instance(TileInstance* instance);

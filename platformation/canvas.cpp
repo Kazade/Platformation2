@@ -45,6 +45,9 @@ void Canvas::do_init() {
         sigc::mem_fun(this, &Canvas::tile_selection_changed_callback)
     );
 
+    //Must happen after the canvas as been created
+    level_.reset(new Level(scene()));
+
     signal_post_init_();
 }
 
@@ -109,9 +112,18 @@ void Canvas::set_active_tile_instance(TileInstance* instance) {
 
 void Canvas::tile_selection_changed_callback(TileChooserEntry entry) {
     if(active_instance_) {
+        if(active_instance_->tile_chooser_entry_id) {
+            level().decrease_texture_refcount(
+                tile_chooser().entry_by_id(active_instance_->tile_chooser_entry_id).abs_path
+            );
+        }
+
         kglt::Mesh& mesh = scene().mesh(active_instance_->mesh_id);
+        active_instance_->tile_chooser_entry_id = entry.id;
         mesh.apply_texture(entry.texture_id);
         mesh.set_diffuse_colour(kglt::Colour(1, 1, 1, 1));
+
+        level().increase_texture_refcount(entry.abs_path);
     }
 }
 

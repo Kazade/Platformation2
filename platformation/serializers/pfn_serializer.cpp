@@ -40,6 +40,10 @@ bool PFNSerializer::save_to(const std::string& filename) {
     level_dict.insert_value("width").set_number(level().horizontal_tile_count());
     level_dict.insert_value("height").set_number(level().vertical_tile_count());
 
+    for(std::string texture: level().active_textures()) {
+        tex_list.append_value().set(texture);
+    }
+
     for(uint32_t i: xrange(level().layer_count())) {
         Layer& layer = level().layer_at(i);
 

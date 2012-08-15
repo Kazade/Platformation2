@@ -78,6 +78,19 @@ MainWindow::MainWindow(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>
         sigc::mem_fun(this, &MainWindow::save_button_clicked_callback)
     );
 
+    ui<Gtk::RadioToolButton>("geometry_mode_button")->signal_clicked().connect(
+        sigc::bind(sigc::mem_fun(this, &MainWindow::set_mode), EDIT_MODE_GEOMETRY)
+    );
+
+    ui<Gtk::RadioToolButton>("tile_mode_button")->signal_clicked().connect(
+        sigc::bind(sigc::mem_fun(this, &MainWindow::set_mode), EDIT_MODE_TILE)
+    );
+
+    ui<Gtk::Frame>("geom_layer_frame"); //WHY MUST I DO THIS?
+    ui<Gtk::Frame>("layers_frame");
+    ui<Gtk::Frame>("tile_locations_frame");
+
+    set_mode(EDIT_MODE_TILE);
     maximize();
 }
 
@@ -114,7 +127,9 @@ void MainWindow::layer_selection_changed_cb() {
     if(iter) {
         Gtk::TreeModel::Row row = *iter;
         uint32_t active_layer = row[layer_list_columns_.column_id_];
-        level_->set_active_layer(active_layer);
+
+        //FIXME: the active layer should be in Canvas
+        canvas_->level().set_active_layer(active_layer);
     }
 
     /*
@@ -134,21 +149,17 @@ void MainWindow::layer_selection_changed_cb() {
 void MainWindow::level_layers_changed_cb() {
     layer_list_model_->clear();
 
-    if(!level_) {
-        return;
-    }
-
     Gtk::TreeView* view = ui<Gtk::TreeView>("layer_list");
 
-    for(uint32_t i = 0; i < level_->layer_count(); ++i) {
-        Layer& layer = level_->layer_at(i);
+    for(uint32_t i = 0; i < canvas_->level().layer_count(); ++i) {
+        Layer& layer = canvas_->level().layer_at(i);
 
         Gtk::TreeModel::Row row = *(layer_list_model_->append());
         row[layer_list_columns_.column_id_] = i;
         row[layer_list_columns_.column_name_] = layer.name();
 
         //If this is the active layer, display a tick next to it
-        if(i == level_->active_layer()) {
+        if(i == canvas_->level().active_layer()) {
             row[layer_list_columns_.checked_] = view->render_icon_pixbuf(Gtk::Stock::YES, Gtk::ICON_SIZE_MENU);
         } else {
             row[layer_list_columns_.checked_] = Glib::RefPtr<Gdk::Pixbuf>();
@@ -220,7 +231,7 @@ void MainWindow::save_button_clicked_callback() {
     if(result == Gtk::RESPONSE_OK) {
         fd.hide();
 
-        PFNSerializer serializer(*level_);
+        PFNSerializer serializer(canvas_->level());
         serializer.save_to(fd.get_filename());
     }
 }
@@ -233,15 +244,12 @@ void MainWindow::post_canvas_init() {
         sigc::mem_fun(this, &MainWindow::tile_loaded_cb)
     );
 
-    //Must happen after the canvas as been created
-    level_.reset(new Level(canvas_->scene()));
-
     //Watch for layer changes on the level
-    level_->signal_layers_changed().connect(
+    canvas_->level().signal_layers_changed().connect(
         sigc::mem_fun(this, &MainWindow::level_layers_changed_cb)
     );
 
-    ui<Gtk::Entry>("level_name_box")->set_text(level_->name());
+    ui<Gtk::Entry>("level_name_box")->set_text(canvas_->level().name());
 
     canvas_->scene().signal_render_pass_started().connect(sigc::mem_fun(this, &MainWindow::recalculate_scrollbars));
     Glib::signal_idle().connect_once(sigc::mem_fun(this, &MainWindow::load_tile_locations));
@@ -308,12 +316,12 @@ void MainWindow::remove_layer_button_clicked_cb() {
 
     if(iter) {
         //Only remove the active layer if something is selected
-        level_->remove_layer(level_->active_layer());
+        canvas_->level().remove_layer(canvas_->level().active_layer());
     }
 }
 
 void MainWindow::add_layer_button_clicked_cb() {
-    level_->add_layer();
+    canvas_->level().add_layer();
 }
 
 void MainWindow::recalculate_scrollbars(kglt::Pass& pass) {
@@ -321,8 +329,8 @@ void MainWindow::recalculate_scrollbars(kglt::Pass& pass) {
 
     double frustum_height = canvas_->scene().active_camera().frustum().near_height();
     double frustum_width = canvas_->scene().active_camera().frustum().near_width();
-    double level_height = (double) level_->vertical_tile_count();
-    double level_width = (double) level_->horizontal_tile_count();
+    double level_height = (double) canvas_->level().vertical_tile_count();
+    double level_width = (double) canvas_->level().horizontal_tile_count();
 
     Glib::RefPtr<Gtk::Adjustment> vadj = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_adjustment();
     if(vadj->get_page_size() != frustum_height) {
@@ -368,6 +376,26 @@ void MainWindow::scrollbar_value_changed() {
     double x_pos = ui<Gtk::Scrollbar>("main_horizontal_scrollbar")->get_value();
     double y_pos = ui<Gtk::Scrollbar>("main_vertical_scrollbar")->get_value();
     canvas_->scene().active_camera().move_to(x_pos, -y_pos, 0.0);
+}
+
+void MainWindow::set_mode(EditMode mode) {
+    if(current_mode_ == mode) return;
+
+    current_mode_ = mode;
+    switch(current_mode_) {
+        case EDIT_MODE_GEOMETRY: {
+            ui<Gtk::Frame>("geom_layer_frame")->show_all();
+            ui<Gtk::Frame>("layers_frame")->hide();
+            ui<Gtk::Frame>("tile_locations_frame")->hide();
+        } break;
+        case EDIT_MODE_TILE: {
+            ui<Gtk::Frame>("geom_layer_frame")->hide();
+            ui<Gtk::Frame>("layers_frame")->show_all();
+            ui<Gtk::Frame>("tile_locations_frame")->show_all();
+        } break;
+        default:
+            break;
+    }
 }
 
 }

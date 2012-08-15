@@ -26,6 +26,10 @@ struct TileLocationListColumns : public Gtk::TreeModel::ColumnRecord {
     Gtk::TreeModelColumn<Glib::ustring> folder;
 };
 
+enum EditMode {
+    EDIT_MODE_TILE,
+    EDIT_MODE_GEOMETRY
+};
 
 class MainWindow : public Gtk::Window {
 public:
@@ -34,7 +38,7 @@ public:
 
     //Signals
     void level_name_box_changed_cb() {
-        level_->set_name(ui<Gtk::Entry>("level_name_box")->get_text());
+        canvas_->level().set_name(ui<Gtk::Entry>("level_name_box")->get_text());
     }
 
     void level_layers_changed_cb();
@@ -58,11 +62,11 @@ public:
     void post_canvas_init();
     void save_button_clicked_callback();
 
+    void set_mode(EditMode mode);
+
 private:
     const Glib::RefPtr<Gtk::Builder>& builder_;
     Canvas* canvas_;    
-
-    Level::ptr level_;
 
     LayerListColumns layer_list_columns_;
     Glib::RefPtr<Gtk::TreeStore> layer_list_model_;
@@ -89,6 +93,7 @@ private:
     void _create_tile_location_list_model();
     void _generate_blank_config();
 
+    EditMode current_mode_;
 };
 
 }

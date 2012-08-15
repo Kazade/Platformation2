@@ -37,6 +37,26 @@ public:
     uint32_t horizontal_tile_count() const;
     uint32_t vertical_tile_count() const;
 
+    void increase_texture_refcount(const std::string& texture_path) {
+        if(texture_ref_count_.find(texture_path) != texture_ref_count_.end()) {
+            texture_ref_count_[texture_path]++;
+        } else {
+            texture_ref_count_[texture_path] = 1;
+        }
+    }
+
+    void decrease_texture_refcount(const std::string& texture_path) {
+        assert(texture_ref_count_.find(texture_path) != texture_ref_count_.end());
+        texture_ref_count_[texture_path]--;
+        if(texture_ref_count_[texture_path] == 0) {
+            texture_ref_count_.erase(texture_path);
+        }
+    }
+
+    std::set<std::string> active_textures() const {
+        return container::keys(texture_ref_count_);
+    }
+
 private:
     kglt::Scene& scene_;
 
@@ -48,6 +68,8 @@ private:
     uint32_t vertical_tile_count_;
 
     sigc::signal<void> signal_layers_changed_;
+
+    std::map<std::string, uint32_t> texture_ref_count_;
 
 };
 
