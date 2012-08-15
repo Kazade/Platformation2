@@ -83,12 +83,12 @@ void Canvas::mesh_selected_callback(kglt::MeshID mesh_id) {
             //If this mesh is part of a tile_instance
             set_active_tile_instance(tile_instance);
         } catch(boost::bad_any_cast& e) {
-            //If we can't then just do nothing for now
+            //If we can't then it's probably a tile chooser tile
             try {
                 TileChooser* tile_chooser = m.user_data<TileChooser*>();
                 tile_chooser->set_selected_by_mesh_id(mesh_id);
             } catch (boost::bad_any_cast& e) {
-                //pass
+                L_WARN("Unknown user_data (not a TileChooser* or TileInstance*)");
             }
         }
     }
